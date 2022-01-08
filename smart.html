@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>esptool Test</title>
+</head>
+
+<body>
+  <button id="getUSB">選擇USB</button>
+  <button id="eraseFw">清除韌體</button>
+  <br>
+  <h2>Blockly</h2>
+  <button id="burnSmart">更新Smart韌體</button>
+  <br><br>
+</body>
+<script src="lib/WebSerial.js"></script>
+<script src="lib/esptool/pako/pako_deflate.js"></script>
+<script src="lib/esptool/slip.js"></script>
+<script src="lib/esptool/md5.js"></script>
+<script src="lib/esptool/esptool.js"></script>
+<script>
+  let getUSB = document.getElementById("getUSB")
+  let burnSmart = document.getElementById("burnSmart")
+  let burnBit = document.getElementById("burnBit")
+  let eraseFw = document.getElementById("eraseFw")
+
+  let esp
+
+  getUSB.onclick = async () => {
+    esp = new ESP({
+      baudrate: 115200 * 2 /* 為燒錄速度 */
+    })
+    esp.init()
+  }
+
+  burnSmart.onclick = async () => {
+    esp.burn('./board/smart/firmware.bin')
+  }
+
+  eraseFw.onclick = async () => {
+    esp.erase()
+  }
+</script>
+
+</html>
