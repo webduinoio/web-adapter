@@ -46,7 +46,7 @@
         }
         //////////////////////////////////////////
         var repl = new REPL()
-        fetch('./esp32.py').then(function (response) {
+        fetch('./esp32cam.py').then(function (response) {
             return response.text();
         }).then(async function (text) {
             ctx.value = text;
