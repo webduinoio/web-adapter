@@ -40,7 +40,8 @@
       })
       await esp.init()
       esp.burn([
-        ["./board/webbit/firmware-esp32-GENERIC.bin", 0x1000]
+        //["./board/webbit/firmware-esp32-GENERIC.bin", 0x1000]
+        ["./board/webbit/local.bin", 0x1000]
       ])
     }
     eraseFw.onclick = async () => {

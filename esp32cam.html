@@ -7,40 +7,74 @@
     <script src="lib/esptool/slip.js"></script>
     <script src="lib/esptool/md5.js"></script>
     <script src="lib/esptool/esptool.js"></script>
+    <style>
+        body {
+            padding: 1rem;
+            background-color: lightgrey;
+        }
+
+        div {
+            padding-left: 15px;
+        }
+
+        textarea {
+            width: 40rem;
+            min-height: 20rem;
+            display: block;
+            font-size: 1.2rem;
+            font-family: Consolas, monaco, monospace;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>MicroPython</h1>
-    <button id="getUSB">燒錄韌體</button>
-    <button id="eraseFw">清除韌體</button>
-    <button id="connect">connect</button>
-    <button id="run">run</button>
-    <button id="upload">upload</button>
-    <button id="snapshot">snapshot</button><br><br>
-    <div id='msg'>wait to connect...</div>
-    <textarea id="ctx" rows="10" style="width:480px"></textarea><br>
-    <textarea id="resp" rows="10" style="width:480px"></textarea>
-    <img id='photo'
-        src='https://shoplineimg.com/5b8cd726af6fe90005f4de3b/5d5220614738510023ab2864/800x.webp?source_format=jpg'
-        width='320' height='320'>
+    <h1>MicroPython (ESP32 Cam)</h1>
+    <div>
+        <button id="eraseFw">清除韌體</button>
+        <button id="getUSB">燒錄韌體</button>
+        <button id="connect">connect</button>
+        <button id="run">run</button>
+        <button id="upload">upload</button>
+        <button id="snapshot">snapshot</button><br><br>
+        <div id='msg'>wait to connect...</div>
+    </div>
+    <div style='float:left'>
+        <textarea id="ctx" rows="10" style="width:480px"></textarea><br>
+        <textarea id="resp" rows="10" style="width:480px"></textarea>
+    </div>
+    <div style='float:left'>
+        <img id='photo'
+            src='https://shoplineimg.com/5b8cd726af6fe90005f4de3b/5d5220614738510023ab2864/800x.webp?source_format=jpg'
+            width='320' height='320'>
+    </div>
 
     <script type="text/javascript">
-        let esp
+        class Log {
+            constructor(textElement) {
+                this.ele = textElement;
+            }
+            log(msg) {
+                this.ele.value = this.ele.value + msg + '\r\n';
+                this.ele.scrollTop = this.ele.scrollHeight;
+            }
+        }
+        let logger = new Log(document.getElementById("resp"));
         let getUSB = document.getElementById("getUSB")
         let eraseFw = document.getElementById("eraseFw")
+        let baudSpeed = 115200 * 2;
+        let esp = new ESP({
+            baudrate: baudSpeed /* 為燒錄速度 */
+        }, logger)
+
         getUSB.onclick = async () => {
-            esp = new ESP({
-                baudrate: 115200 * 2 /* 為燒錄速度 */
-            })
             await esp.init()
             esp.burn([
-                ["./board/esp32cam/esp32cam.bin", 0x1000]
+                ["./board/esp32cam/bootloader.bin", 0x1000],
+                ["./board/esp32cam/partition-table.bin", 0x8000],
+                ["./board/esp32cam/micropython.bin", 0x10000],
             ])
         }
         eraseFw.onclick = async () => {
-            esp = new ESP({
-                baudrate: 115200 * 8 /* 為燒錄速度 */
-            })
             await esp.init()
             esp.erase()
         }
@@ -66,6 +100,7 @@ print('REPL Ready...')
 `, function (data) {
                 output += (data + "\r\n");
                 resp.value = output;
+                resp.scrollTop = resp.scrollHeight;
                 return {
                     value: '',
                     done: false
@@ -82,6 +117,7 @@ print('REPL Ready...')
             await repl.write(ctx.value, function (data) {
                 output += (data + "\r\n");
                 resp.value = output;
+                resp.scrollTop = resp.scrollHeight;
                 return {
                     value: '',
                     done: false
