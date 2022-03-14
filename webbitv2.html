@@ -1,0 +1,164 @@
+<html lang="en">
+
+<head>
+  <script type="text/javascript" src="lib/repl.js"></script>
+</head>
+
+<body>
+  <h1>Blockly & MicroPython</h1>
+  <button id="eraseFw">清除韌體</button>
+  <button id="blockly">燒錄 Blockly</button>
+  <button id="mpython">燒錄 MicroPython</button>
+  <button id="connect">connect</button>
+  <button id="run">run</button>
+  <button id="upload">upload</button>
+  <button id="snapshot">snapshot</button><br><br>
+  <div id='msg'>wait to connect...</div>
+  <textarea id="ctx" rows="10" style="width:480px"></textarea><br>
+  <textarea id="resp" rows="10" style="width:480px"></textarea>
+  <script type="module">
+    import { Transport } from './lib/esptool/webserial.js'
+    import { ESPLoader } from './lib/esptool/ESPLoader.js'
+  let esploader;
+  let device = null;
+  let transport;
+  let getUSB = document.getElementById("getUSB")
+  let eraseFw = document.getElementById("eraseFw")
+  blockly.onclick = async () => {
+    esp = new ESP({
+      baudrate: 115200 * 2
+    })
+    await esp.init()
+    esp.burn([
+      ["./board/webbitv2/firmware.bin", 0]
+    ])
+  }
+
+  // micropython
+  mpython.onclick = async () => {
+
+    class Terminal {
+      write(str){
+        console.log(str);
+      }
+      writeln(str){
+        console.log(str);
+      }
+      clear(){
+        console.log("");
+        console.log("-=-=-=-=-=-");
+        console.log("");
+      }
+    }
+
+    if (device === null) {
+        device = await navigator.serial.requestPort({
+            filters: [/*{ usbVendorId: 0x10c4 }*/]
+        });
+        transport = new Transport(device);
+    }
+
+    esploader = new ESPLoader(transport, 230400, new Terminal());
+    chip = await esploader.main_fn();
+    console.log("!!!!!!!!chip:",chip);
+    async function getFile(url,addrOffset) {
+      return await fetch(url, {
+        mode: 'cors'
+      }).then(res => {
+        return res.arrayBuffer();
+      }).then(buf => {
+        return { data: buf, address: addrOffset }
+      });
+    };
+    var fileArr = [
+      await getFile('/board/webbitv2/bootloader.bin',0x1000),
+      await getFile('/board/webbitv2/partition-table.bin',0x8000),
+      await getFile('/board/webbitv2/micropython.bin',0x10000),
+    ];
+    ESPLoader.write_flash({ fileArray: fileArr, flash_size: 'keep' });    
+    /*
+
+        fileArr.push({ data: fileObj.data, address: offset });
+
+        esploader.write_flash({ fileArray: fileArr, flash_size: 'keep' });
+        esp.burn([{
+            "./board/webbitv2/bootloader.bin",0x1000],
+          ["./board/webbitv2/partition-table.bin", 0x8000],
+          ["./board/webbitv2/micropython.bin", 0x10000]
+        ])
+        //*/
+  }
+  eraseFw.onclick = async () => {
+    esp = new ESP({
+      baudrate: 115200 * 2
+    })
+    await esp.init()
+    esp.erase()
+  }
+  //////////////////////////////////////////
+  var repl = new REPL()
+  fetch('./webbit.py').then(function (response) {
+    return response.text();
+  }).then(async function (text) {
+    ctx.value = text;
+    msg.innerHTML = '';
+  });
+
+  connect.addEventListener('click', async () => {
+    connect.disabled = true;
+    msg.innerHTML = 'connecting...';
+    resp.value = '';
+    await repl.usbConnect();
+    await repl.enter('esp32');
+    resp.value = '';
+    var output = '';
+    await repl.write(`
+print('REPL Ready...')
+`, function (data) {
+      output += (data + "\r\n");
+      resp.value = output;
+      return {
+        value: '',
+        done: false
+      }
+    });
+    connect.disabled = false;
+    msg.innerHTML = 'connected';
+  })
+
+  run.addEventListener('click', async () => {
+    run.disabled = true;
+    resp.value = '';
+    var output = '';
+    await repl.write(ctx.value, function (data) {
+      output += (data + "\r\n");
+      resp.value = output;
+      return {
+        value: '',
+        done: false
+      }
+    });
+    run.disabled = false;
+  })
+
+  upload.addEventListener('click', async () => {
+    upload.disabled = true;
+    var file = 'main.py';
+    await repl.usbConnect();
+    msg.innerHTML = 'uploading...';
+    await repl.enter('esp32')
+    var writeLen = await repl.uploadFile('esp32', file, ctx.value);
+    msg.innerHTML = 'upload ' + file + " ," + writeLen + " Bytes";
+    await repl.restart();
+    upload.disabled = false;
+  })
+
+  snapshot.addEventListener('click', async () => {
+    snapshot.disabled = true;
+    photo.src = await repl.snapshot();
+    snapshot.disabled = false;
+  })
+  </script>
+</body>
+
+</html>
