@@ -8,11 +8,10 @@
 </head>
 
 <body>
-    <h2>Smart</h2>
+    <h2>ESP01</h2>
     <button id="getUSB">選擇USB</button>
     <button id="eraseFw">清除韌體</button>
-    <button id="burnSmart">燒錄 Blockly 韌體</button>
-    <button id="burnSmartMpy">燒錄 Micropython 韌體</button>
+    <button id="burnESP01">燒錄 Micropython 韌體</button>
     <br><br>
 </body>
 <script src="lib/WebSerial.js"></script>
@@ -21,11 +20,8 @@
 <script src="lib/esptool/md5.js"></script>
 <script src="lib/esptool/esptool.js"></script>
 <script>
-
 let getUSB = document.getElementById("getUSB")
-let burnSmart = document.getElementById("burnSmart")
-let burnSmartMpy = document.getElementById("burnSmartMpy")
-let burnBit = document.getElementById("burnBit")
+let burnESP01 = document.getElementById("burnESP01")
 let eraseFw = document.getElementById("eraseFw")
 let esp
 
@@ -36,14 +32,11 @@ getUSB.onclick = async () => {
     await esp.init()
 }
 
-burnSmart.onclick = async () => {
-    esp.burn('./board/smart/firmware.bin')
-}
-
-burnSmartMpy.onclick = async () => {
+burnESP01.onclick = async () => {
     esp.burn([
-        ["./board/smart/mpy/firmware.elf-0x00000.bin", 0],
-        ["./board/smart/mpy/firmware.elf-0x09000.bin", 0x09000]
+        //["./board/smart/mpy/esp01-mpy.bin", 0],
+        ["./board/esp01/firmware.elf-0x00000.bin", 0],
+        ["./board/esp01/firmware.elf-0x09000.bin", 0x09000]
     ])
 }
 
