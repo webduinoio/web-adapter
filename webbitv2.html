@@ -6,17 +6,41 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <script src="board/webbitv2/js/utilities.js" defer></script>
     <script src="board/webbitv2/js/esptool.js" defer></script>
     <script src="board/webbitv2/js/v2.js" defer></script>
 </head>
 
 <body>
-    <h1>Web:Bit v2 韌體燒錄</h1>
-    <button id="btnConnect" type="button">Connect</button>
-    <button id="btnErase" type="button" style='display:none'>Erase</button>
-    <button id="btnPython" type="button" style='display:none'>Micropython</button>
-    <button id="btnJS" type="button" style='display:none'>Blockly JS</button>
+    <div style="padding:10px">
+        <h1>Web:Bit v2 韌體燒錄</h1>
+        <button id="btnConnect" type="button">連接開發板</button>
+        <button id="btnErase" type="button" style='display:none'>清除韌體</button>
+        <button id="btnPython" type="button" style='display:none'>燒錄 Micropython 韌體</button>
+        <button id="btnJS" type="button" style='display:none'>燒錄 BlocklyJS 韌體</button>
+        <br><br>
+        <div>訊息：<span id="msg">尚未連線</span></div>
+        <br>
+        <div class="w3-light-grey" style="width:200px;">
+            <div id="myBar" class="w3-container w3-green" style="padding: 0px;width:0%;display:none">0%</div>
+        </div>
+    </div>
+    <script>
+    function progressShow() {
+        myBar.style.display = '';
+    }
+
+    function progressHide() {
+        myBar.style.display = 'none';
+    }
+
+    function progressSet(n) {
+        var elem = document.getElementById("myBar");
+        elem.style.width = n + '%';
+        elem.innerHTML = n + '%';
+    }
+    </script>
 </body>
 
 </html>

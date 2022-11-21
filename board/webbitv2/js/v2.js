@@ -34,16 +34,18 @@ class Burn {
     this.logMsg("Finished. Took " + (Date.now() - stamp) + "ms to erase.");
   }
 
-  async flash(urlFiles) {
+  async flash(urlFiles, cb) {
+    this.espTool.updateProgress = cb;
     var fileArr = [];
     for (var i = 0; i < urlFiles.length; i++) {
       var fileObj = await this.getFile(urlFiles[i][0], urlFiles[i][1]);
       fileArr.push(fileObj);
     }
+    var part = 0;
     for (let file of fileArr) {
       let contents = file.data;
       let offset = file.address;
-      await this.espTool.flashData(contents, offset, file);
+      await this.espTool.flashData(contents, offset, ++part);
       await this.sleep(100);
     }
     this.logMsg("To run the new firmware, please reset your device.");
@@ -61,6 +63,7 @@ class Burn {
 
   updateProgress(part, percentage) {
     console.log("part:", part, " , percentage:", percentage);
+    this.progressCallback(part, percentage);
   }
 
   logMsg(text) {
@@ -96,17 +99,24 @@ class Burn {
 var burn = new Burn();
 
 btnConnect.addEventListener('click', async () => {
-  burn.connect(230400);
+  msg.innerHTML = 'USB 連線中...';
+  btnConnect.disabled = true;
+  await burn.connect(230400);
   btnJS.style['display'] = '';
   btnErase.style['display'] = '';
   btnPython.style['display'] = '';
+  msg.innerHTML = '連線成功，請點選相關功能';
 });
 
 btnErase.addEventListener('click', async () => {
-  burn.erase();
+  msg.innerHTML = '清除約需15秒，請稍候...';
+  await burn.erase();
+  msg.innerHTML = '清除完成';
 });
 
 btnPython.addEventListener('click', async () => {
+  msg.innerHTML = '燒錄中，請稍候...';
+  progressShow();
   console.log("load files...");
   var fileArr = [
     ['board/webbitv2/0x1000_bootloader.bin', 0x1000],
@@ -114,10 +124,17 @@ btnPython.addEventListener('click', async () => {
     ['board/webbitv2/0x10000_micropython.bin', 0x10000],
   ];
   console.log("OK!");
-  burn.flash(fileArr);
+  await burn.flash(fileArr, function (part, percent) {
+    if (part == fileArr.length) {
+      progressSet(percent);
+    }
+  });
+  msg.innerHTML = '燒錄完成';
 });
 
 btnJS.addEventListener('click', async () => {
+  msg.innerHTML = '燒錄中，請稍候...';
+  progressShow();
   console.log("load files...");
   var fileArr = [
     ['board/webbitv2/0x1000_bootloader.bin', 0x1000],
@@ -125,5 +142,10 @@ btnJS.addEventListener('click', async () => {
     ['board/webbitv2/bit_s2_default.bin', 0x10000],
   ];
   console.log("OK!");
-  burn.flash(fileArr);
+  await burn.flash(fileArr, function (part, percent) {
+    if (part == fileArr.length) {
+      progressSet(percent);
+    }
+  });
+  msg.innerHTML = '燒錄完成';
 });
