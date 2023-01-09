@@ -1,23 +1,23 @@
+import os
+import time
 
+import machine
+import network
+import ubinascii
+import usocket
 
+board_devSSID = "teacher001"
+board_device_id = "teacher001"
 
-
-board_device_id = 'marty'
-
-
-
-
-
-import os, usocket, time, ubinascii, network, machine
 
 def do_connect():
     global connected
     sta_if = network.WLAN(network.STA_IF)
     sta_if.active(True)
-    print('connecting to network...')
-    #sta_if.disconnect()
-    if(not sta_if.isconnected()):
-        sta_if.connect('KingKit_2.4G', 'webduino')
+    print("connecting to network...")
+    # sta_if.disconnect()
+    if not sta_if.isconnected():
+        sta_if.connect("WIFI_SSID", "WIFI_PASSWORD")
     cnt = 0
     while not sta_if.isconnected():
         cnt = cnt + 1
@@ -25,10 +25,10 @@ def do_connect():
         if cnt == 60:
             break
     connected = sta_if.isconnected()
-    print('network config:', sta_if.ifconfig())
+    print("network config:", sta_if.ifconfig())
+
 
 class Response:
-
     def __init__(self, f):
         self.raw = f
         self.encoding = "utf-8"
@@ -56,6 +56,7 @@ class Response:
 
     def json(self):
         import ujson
+
         return ujson.loads(self.content)
 
 
@@ -69,6 +70,7 @@ def request(method, url, data=None, json=None, headers={}, stream=None):
         port = 80
     elif proto == "https:":
         import ussl
+
         port = 443
     else:
         raise ValueError("Unsupported protocol: " + proto)
@@ -76,7 +78,7 @@ def request(method, url, data=None, json=None, headers={}, stream=None):
     if ":" in host:
         host, port = host.split(":", 1)
         port = int(port)
-    #print("host:",host,",port:",port)
+    # print("host:",host,",port:",port)
     ai = usocket.getaddrinfo(host, port, 0, usocket.SOCK_STREAM)
     ai = ai[0]
 
@@ -97,6 +99,7 @@ def request(method, url, data=None, json=None, headers={}, stream=None):
         if json is not None:
             assert data is None
             import ujson
+
             data = ujson.dumps(json)
             s.write(b"Content-Type: application/json\r\n")
         if data:
@@ -106,7 +109,7 @@ def request(method, url, data=None, json=None, headers={}, stream=None):
             s.write(data)
 
         l = s.readline()
-        #print(l)
+        # print(l)
         l = l.split(None, 2)
         status = int(l[1])
         reason = ""
@@ -116,7 +119,7 @@ def request(method, url, data=None, json=None, headers={}, stream=None):
             l = s.readline()
             if not l or l == b"\r\n":
                 break
-            #print(l)
+            # print(l)
             if l.startswith(b"Transfer-Encoding:"):
                 if b"chunked" in l:
                     raise ValueError("Unsupported " + l)
@@ -135,30 +138,34 @@ def request(method, url, data=None, json=None, headers={}, stream=None):
 def head(url, **kw):
     return request("HEAD", url, **kw)
 
+
 def get(url, **kw):
     return request("GET", url, **kw)
+
 
 def post(url, **kw):
     return request("POST", url, **kw)
 
+
 def put(url, **kw):
     return request("PUT", url, **kw)
 
+
 def patch(url, **kw):
     return request("PATCH", url, **kw)
+
 
 def delete(url, **kw):
     return request("DELETE", url, **kw)
 
 
 class Res:
-
-    def save(url,file):
+    def save(url, file):
         try:
             response = get(url)
-            print(">>",len(response.text) )
-            print("get file:",file,'size:',len(response.text),',save to:',file)
-            f = open(file, 'w')
+            print(">>", len(response.text))
+            print("get file:", file, "size:", len(response.text), ",save to:", file)
+            f = open(file, "w")
             f.write(response.text)
             f.close()
             print("OK.")
@@ -166,14 +173,13 @@ class Res:
             print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             print(e)
             print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        
 
-    def get(url,file):
+    def get(url, file):
         try:
-            response = get('https://marty5499.github.io/pythonCode/'+url)
-            print(">>",len(response.text) )
-            print("get file:",file,'size:',len(response.text),',save to:',file)
-            f = open(file, 'w')
+            response = get("https://webduinoio.github.io/pythonCode/" + url)
+            print(">>", len(response.text))
+            print("get file:", file, "size:", len(response.text), ",save to:", file)
+            f = open(file, "w")
             f.write(response.text)
             f.close()
             print("OK.")
@@ -181,60 +187,59 @@ class Res:
             print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             print(e)
             print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
 
     def exe(dir):
         srcDir = dir
         try:
             while True:
-                idx = dir.index('/')
+                idx = dir.index("/")
                 try:
                     name = dir[0:idx]
                     try:
-                        print('mkdir',name)
+                        print("mkdir", name)
                         os.mkdir(name)
                     except:
                         pass
                     try:
                         os.chdir(name)
-                        print('cd',name)
+                        print("cd", name)
                     except:
                         pass
                 except:
                     pass
-                dir = dir[idx+1:]
+                dir = dir[idx + 1 :]
         except:
             pos = -1
             try:
-                pos = dir.index('.mpy')
+                pos = dir.index(".mpy")
             except:
                 pass
             try:
                 if pos == -1:
-                    pos = dir.index('.py')
+                    pos = dir.index(".py")
             except:
                 pass
             try:
                 if pos > 0:
                     pyFile = dir
-                    Res.get(srcDir,pyFile)
+                    Res.get(srcDir, pyFile)
                 else:
                     try:
-                        print("mkdir",dir)
+                        print("mkdir", dir)
                         os.mkdir(dir)
                     except:
                         pass
                     try:
                         os.chdir(dir)
-                        print("cd ",dir)
+                        print("cd ", dir)
                     except:
                         pass
             except:
                 pass
-        os.chdir('/')
+        os.chdir("/")
 
 
-def install(deviceId=''):
+def install(deviceId=""):
 
     # WiFi Connect
     print("connect...")
@@ -242,38 +247,43 @@ def install(deviceId=''):
     print("get files...")
 
     # 開源必備
-    Res.exe('lib/urequests.py')
-    Res.exe('lib/umqtt/simple.py')
+    Res.exe("lib/urequests.py")
+    Res.exe("lib/umqtt/simple.py")
 
     # Webduino 類別庫
-    Res.exe('lib/webduino/led.py')
-    Res.exe('lib/webduino/config.py')
-    Res.exe('lib/webduino/gdriver.py')
-    Res.exe('lib/webduino/camera.py')
-    Res.exe('lib/webduino/board.py')
-    Res.exe('lib/webduino/mqtt.py')
-    Res.exe('lib/webduino/wifi.py')
-    Res.exe('lib/webduino/webserver.py')
-    Res.exe('lib/webduino/debug.py')
-    Res.exe('lib/utils.py') # save url to file
-    Res.get('','index.html')
-    
+    Res.exe("lib/webduino/led.py")
+    Res.exe("lib/webduino/config.py")
+    Res.exe("lib/webduino/gdriver.py")
+    Res.exe("lib/webduino/camera.py")
+    Res.exe("lib/webduino/board.py")
+    Res.exe("lib/webduino/mqtt.py")
+    Res.exe("lib/webduino/wifi.py")
+    Res.exe("lib/webduino/webserver.py")
+    Res.exe("lib/webduino/debug.py")
+    Res.exe("lib/utils.py")  # save url to file
+    Res.get("", "index.html")
+
     from utils import Utils
     from webduino.config import Config
-    Utils.save('https://marty5499.github.io/pythonCode/app/boot.py','boot.py')
-    Utils.save('https://marty5499.github.io/pythonCode/app/CamApp.py','main.py')
+
+    Utils.save("https://webduinoio.github.io/pythonCode/app/boot.py", "boot.py")
+    Utils.save("https://webduinoio.github.io/pythonCode/app/CamApp.py", "main.py")
     Config.load()
-    if(not deviceId == ''):
-        Config.data['devId'] = deviceId
+    if not deviceId == "":
+        Config.data["devId"] = deviceId
     else:
-        deviceId = Config.data['devId']
+        deviceId = Config.data["devId"]
+
+    if not board_devSSID == "":
+        Config.data["devSSID"] = board_devSSID
+
     print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-    print("-    Device ID: ["+deviceId+"]    -")
+    print("-    Device ID: [" + deviceId + "]    -")
     Config.save()
     print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-    print('Mac address:',ubinascii.hexlify(network.WLAN().config('mac'),':').decode())
+    print("Mac address:", ubinascii.hexlify(network.WLAN().config("mac"), ":").decode())
 
-install(deviceId = board_device_id) # force setting deviceId
-#install()
+
+install(deviceId=board_device_id)
 time.sleep(1)
 machine.reset()
