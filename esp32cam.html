@@ -1,6 +1,5 @@
 <html lang="en">
-
-<head>
+  <head>
     <script type="text/javascript" src="lib/repl.js"></script>
     <script src="lib/WebSerial.js"></script>
     <script src="lib/esptool/pako/pako_deflate.js"></script>
@@ -8,142 +7,152 @@
     <script src="lib/esptool/md5.js"></script>
     <script src="lib/esptool/esptool.js"></script>
     <style>
-        body {
-            padding: 1rem;
-            background-color: lightgrey;
-        }
+      body {
+        padding: 1rem;
+        background-color: lightgrey;
+      }
 
-        div {
-            padding-left: 15px;
-        }
+      div {
+        padding-left: 15px;
+      }
 
-        textarea {
-            width: 40rem;
-            min-height: 20rem;
-            display: block;
-            font-size: 1.2rem;
-            font-family: Consolas, monaco, monospace;
-        }
+      textarea {
+        width: 40rem;
+        min-height: 20rem;
+        display: block;
+        font-size: 1.2rem;
+        font-family: Consolas, monaco, monospace;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <h1>MicroPython (ESP32 Cam)</h1>
     <div>
-        <button id="eraseFw">清除韌體</button>
-        <button id="getUSB">燒錄韌體</button>
-        <button id="upload">更新 main.py</button>
-        <button id="connect">連線</button>
-        <button id="run">連線後執行</button>
-        <button id="snapshot">連線後拍照</button><br><br>
-        <div id='msg'>wait to connect...</div>
+      <button id="eraseFw">清除韌體</button>
+      <button id="getUSB">燒錄韌體</button>
+      <button id="upload">更新 main.py</button>
+      <button id="connect">連線</button>
+      <button id="run">連線後執行</button>
+      <button id="snapshot">連線後拍照</button><br /><br />
+      <div id="msg">wait to connect...</div>
     </div>
-    <div style='float:left'>
-        <textarea id="ctx" rows="10" style="width:480px"></textarea><br>
-        <textarea id="resp" rows="10" style="width:480px"></textarea>
+    <div style="float: left">
+      <textarea id="ctx" rows="10" style="width: 480px"></textarea><br />
+      <textarea id="resp" rows="10" style="width: 480px"></textarea>
     </div>
-    <div style='float:left'>
-        <img id='photo'
-            src='https://shoplineimg.com/5b8cd726af6fe90005f4de3b/5d5220614738510023ab2864/800x.webp?source_format=jpg'
-            width='320' height='320'>
+    <div style="float: left">
+      <img
+        id="photo"
+        src="https://shoplineimg.com/5b8cd726af6fe90005f4de3b/5d5220614738510023ab2864/800x.webp?source_format=jpg"
+        width="320"
+        height="320"
+      />
     </div>
 
     <script type="text/javascript">
-        class Log {
-            constructor(textElement) {
-                this.ele = textElement;
-            }
-            log(msg) {
-                this.ele.value = this.ele.value + msg + '\r\n';
-                this.ele.scrollTop = this.ele.scrollHeight;
-            }
+      class Log {
+        constructor(textElement) {
+          this.ele = textElement;
         }
-        let logger = new Log(document.getElementById("resp"));
-        let getUSB = document.getElementById("getUSB")
-        let eraseFw = document.getElementById("eraseFw")
-        let baudSpeed = 115200 * 2;
-        let esp = new ESP({
-            baudrate: baudSpeed /* 為燒錄速度 */
-        }, logger)
+        log(msg) {
+          this.ele.value = this.ele.value + msg + "\r\n";
+          this.ele.scrollTop = this.ele.scrollHeight;
+        }
+      }
+      let logger = new Log(document.getElementById("resp"));
+      let getUSB = document.getElementById("getUSB");
+      let eraseFw = document.getElementById("eraseFw");
+      let baudSpeed = 115200 * 2;
+      let esp = new ESP(
+        {
+          baudrate: baudSpeed /* 為燒錄速度 */,
+        },
+        logger
+      );
 
-        getUSB.onclick = async () => {
-            await esp.init()
-            esp.burn([
-                ["./board/esp32cam/bootloader.bin", 0x1000],
-                ["./board/esp32cam/partition-table.bin", 0x8000],
-                ["./board/esp32cam/micropython.bin", 0x10000],
-            ])
-        }
-        eraseFw.onclick = async () => {
-            await esp.init()
-            esp.erase()
-        }
-        //////////////////////////////////////////
-        var repl = new REPL()
-        fetch('./esp32cam.py').then(function (response) {
-            return response.text();
-        }).then(async function (text) {
-            ctx.value = text;
-            msg.innerHTML = '';
+      getUSB.onclick = async () => {
+        await esp.init();
+        esp.burn([
+          ["./board/esp32cam/bootloader.bin", 0x1000],
+          ["./board/esp32cam/partition-table.bin", 0x8000],
+          ["./board/esp32cam/micropython.bin", 0x10000],
+        ]);
+      };
+      eraseFw.onclick = async () => {
+        await esp.init();
+        esp.erase();
+      };
+      //////////////////////////////////////////
+      var repl = new REPL();
+      fetch("./esp32cam.py")
+        .then(function (response) {
+          return response.text();
+        })
+        .then(async function (text) {
+          ctx.value = text;
+          msg.innerHTML = "";
         });
 
-        connect.addEventListener('click', async () => {
-            connect.disabled = true;
-            msg.innerHTML = 'connecting...';
-            resp.value = '';
-            await repl.usbConnect();
-            await repl.enter('esp32');
-            resp.value = '';
-            var output = '';
-            await repl.write(`
+      connect.addEventListener("click", async () => {
+        connect.disabled = true;
+        msg.innerHTML = "connecting...";
+        resp.value = "";
+        await repl.usbConnect();
+        await repl.enter("esp32");
+        resp.value = "";
+        var output = "";
+        await repl.write(
+          `
 print('REPL Ready...')
-`, function (data) {
-                output += (data + "\r\n");
-                resp.value = output;
-                resp.scrollTop = resp.scrollHeight;
-                return {
-                    value: '',
-                    done: false
-                }
-            });
-            connect.disabled = false;
-            msg.innerHTML = 'connected';
-        })
+`,
+          function (data) {
+            output += data + "\r\n";
+            resp.value = output;
+            resp.scrollTop = resp.scrollHeight;
+            return {
+              value: "",
+              done: false,
+            };
+          }
+        );
+        connect.disabled = false;
+        msg.innerHTML = "connected";
+      });
 
-        run.addEventListener('click', async () => {
-            run.disabled = true;
-            resp.value = '';
-            var output = '';
-            await repl.write(ctx.value, function (data) {
-                output += (data + "\r\n");
-                resp.value = output;
-                resp.scrollTop = resp.scrollHeight;
-                return {
-                    value: '',
-                    done: false
-                }
-            });
-            run.disabled = false;
-        })
+      run.addEventListener("click", async () => {
+        run.disabled = true;
+        resp.value = "";
+        var output = "";
+        await repl.write(ctx.value, function (data) {
+          output += data + "\r\n";
+          resp.value = output;
+          resp.scrollTop = resp.scrollHeight;
+          return {
+            value: "",
+            done: false,
+          };
+        });
+        run.disabled = false;
+      });
 
-        upload.addEventListener('click', async () => {
-            upload.disabled = true;
-            var file = 'main.py';
-            await repl.usbConnect();
-            msg.innerHTML = 'uploading...';
-            await repl.enter('esp32')
-            var writeLen = await repl.uploadFile('esp32', file, ctx.value);
-            msg.innerHTML = 'upload ' + file + " ," + writeLen + " Bytes";
-            await repl.restart();
-            upload.disabled = false;
-        })
+      upload.addEventListener("click", async () => {
+        upload.disabled = true;
+        var file = "main.py";
+        await repl.usbConnect();
+        msg.innerHTML = "uploading...";
+        await repl.enter("esp32");
+        var writeLen = await repl.uploadFile("esp32", file, ctx.value);
+        msg.innerHTML = "upload " + file + " ," + writeLen + " Bytes";
+        await repl.restart();
+        upload.disabled = false;
+      });
 
-        snapshot.addEventListener('click', async () => {
-            snapshot.disabled = true;
-            photo.src = await repl.snapshot();
-            snapshot.disabled = false;
-        })
+      snapshot.addEventListener("click", async () => {
+        snapshot.disabled = true;
+        photo.src = await repl.snapshot();
+        snapshot.disabled = false;
+      });
     </script>
-</body>
-
+  </body>
 </html>
