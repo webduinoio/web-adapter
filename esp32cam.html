@@ -23,6 +23,15 @@
         font-size: 1.2rem;
         font-family: Consolas, monaco, monospace;
       }
+      .container {
+        display: flex;
+      }
+      ​ .item-right {
+        flex: 1;
+      }
+      ​ .item-left {
+        flex: 1;
+      }
     </style>
   </head>
 
@@ -39,25 +48,22 @@
       password：<input id="WiFiPassword" value="webduino" /><br /><br />
 
       <button id="connect">連線</button><br /><br />
-      <button id="update">更新 webeye pro</button><br><br>
+      <button id="update">更新 webeye pro</button><br /><br />
       <button id="clear">清除</button>
-      <button id="upload">更新 main.py</button><br><br>
-      <button id="run">執行</button><br /><br />
+      <button id="upload">更新 main.py</button><br /><br />
       <div id="msg">wait to connect...</div>
     </div>
 
-    <div style="float: left">
-      <textarea id="ctx" rows="10" style="width: 480px"></textarea><br />
-      <h2>response</h2>
-      <textarea id="resp" rows="10" style="width: 480px"></textarea>
-    </div>
-    <div style="float: left">
-      <img
-        id="photo"
-        src="https://shoplineimg.com/5b8cd726af6fe90005f4de3b/5d5220614738510023ab2864/800x.webp?source_format=jpg"
-        width="320"
-        height="320"
-      />
+    <div class="container">
+      <div class="item-right">
+        <h2>input</h2>
+        <textarea id="ctx" style="width: 480px; height: 200px"></textarea>
+        <button id="run">執行</button><br /><br />
+      </div>
+      <div class="item-left">
+        <h2>response</h2>
+        <textarea id="resp" style="width: 480px; height: 200px"></textarea>
+      </div>
     </div>
 
     <script type="text/javascript">
@@ -83,13 +89,21 @@
 
       getUSB.onclick = async () => {
         await esp.init();
-        esp.burn([
-          ["./board/esp32cam/webeye-pro.bin", 0x1000]
-        ]);
+        msg.innerHTML =
+          "1. press IO0<br>2. click esp32-cam rst<br>3. release IO0";
+        await esp.burn([["./board/esp32cam/webeye-pro.bin", 0x1000]]);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        alert("finish!");
+        location.reload();
       };
       eraseFw.onclick = async () => {
         await esp.init();
-        esp.erase();
+        msg.innerHTML =
+          "1. press IO0<br>2. click esp32-cam rst<br>3. release IO0";
+        await esp.erase();
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        alert("finish!");
+        location.reload();
       };
       //////////////////////////////////////////
       var repl = new REPL();
