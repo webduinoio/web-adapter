@@ -145,6 +145,7 @@ print('REPL Ready...')
 
       run.addEventListener("click", async () => {
         run.disabled = true;
+        msg.innerHTML = "wait...";
         resp.value = "";
         var output = "";
         await repl.write(ctx.value, function (data) {
@@ -157,6 +158,7 @@ print('REPL Ready...')
           };
         });
         run.disabled = false;
+        msg.innerHTML = "run ok";
       });
 
       upload.addEventListener("click", async () => {
