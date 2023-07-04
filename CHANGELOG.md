@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- smart 燒錄工具 底板 [#6968](https://redmine.kingkit.codes/issues/6968)
 - 支援 esp32-cam-mb 底板 [#6256](https://redmine.kingkit.codes/issues/6256)
 
 [unreleased]: https://github.com/webduinoio/web-adapter/compare/v0.0.0...HEAD
