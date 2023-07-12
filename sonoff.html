@@ -164,7 +164,7 @@
                 showNotify(true, false, "序號不存在或其他異常，請 RD 協助檢查")
             }
             else if (success == 1) {
-                showNotify(false, true, "燒錄完成，檢查板子是否有自動重新開機，沒有的話請再燒錄一次！")
+                showNotify(false, true, "燒錄完成！")
             } else if (success == 0) {
                 eraseFirmware.disabled = false
                 burn.disabled = false
