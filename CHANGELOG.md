@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 智慧插座燒錄工具 [#7003](https://redmine.kingkit.codes/issues/7003)
 - WebEye Pro 燒錄工具 [#7004](https://redmine.kingkit.codes/issues/7004)
 - smart 燒錄工具 [#6968](https://redmine.kingkit.codes/issues/6968)
 - 支援 esp32-cam-mb 底板 [#6256](https://redmine.kingkit.codes/issues/6256)
